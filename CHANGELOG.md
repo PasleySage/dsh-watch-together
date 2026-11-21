@@ -18,6 +18,20 @@
 新增 `scripts/check-input-select.py`（真导入 `window.py` 调真实方法，等宽假字体注入，
 无显示器时 Ctrl+A 一项 SKIP）。已知边界：双击只看 0.35s 不看两次点击的距离。
 
+### Fixed — 用户打的字写不进 `chat.jsonl` 时，消息就永远丢了（dsh-see-now#75）
+
+社区实报：同一台机器上 PowerShell 能写 `~/.dsh/see-now/chat.jsonl`、Python append 报
+`Permission denied`。窗口里的表现是"字打出来了，按回车没反应"，状态栏只有一行 errno。
+
+`append_user` 现在会**自己修一次**：append 撞上 `PermissionError` 时，把整份读出来 + 新行
+写成同目录的临时文件，再 `os.replace()` 换掉原文件 —— 新文件的 ACL 由目录继承，坏 ACL
+跟着旧文件一起没了；读不出来就只写这一句（丢历史也不能丢这句话）。替换也失败时才把
+**第一条** `PermissionError` 抛给状态栏，并提示"文件被占用或权限不足"。
+失败时输入框**不清空**，用户改完环境可以直接再按一次回车。
+
+新增 `scripts/check-chat-append.py`：正常 append / EACCES 自愈（历史一行不丢、临时文件不残留）/
+连 replace 都失败时抛真因。
+
 ## [0.3.4] - 2026-11-16
 
 > 三件都在 `examples/floating-chat/window.py`。前两条来自 see-now 那边的社区报告
