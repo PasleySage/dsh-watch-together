@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed — 悬浮窗：顶边拉不高，输入框选不了字（#63）
+
+- 顶边一直不能往上拉：`_edge_at` 里 `y <= edge` 整条返回 `None`，高度只能从底边改。
+  现在最上面 `TOP_EDGE_PX = 14` 像素返回 `"n"`，再往下仍是拖窗（标题栏 item 从 y=17 起，
+  不压它们；四角仍是 nw/ne）。
+- 输入框选不了字：Entry 本体不可见、文字画在 Canvas 上，`sel` 的高亮用户根本看不见。
+  现在 `_render_input` 读 `sel.first/sel.last` 在 Canvas 上画选区底色，有选区时不画光标；
+  单击按字宽中点定位（含可见段起点），按住拖选，0.35 秒内连点两下全选；Ctrl+A 绑到
+  `_input_select_all` 并 `return "break"`（Tk 的类绑定里 Ctrl+A 是"跳到行首"）。
+- 去掉 `inputzone` 的 `<Button-1>` tag 绑定：Canvas 的 tag 绑定比 root 的 `_press` 先触发，
+  它调 `_focus_input()` 会把光标挪回末尾，定位与拖选会全失效。点输入框统一走 `_press`。
+- 光标从 1px `#b9d7ff` 改成 2px 圆头 `#7cc4ff`、高 20px —— 原来那条在玻璃上几乎看不见。
+
+新增 `scripts/check-input-select.py`（真导入 `window.py` 调真实方法，等宽假字体注入，
+无显示器时 Ctrl+A 一项 SKIP）。已知边界：双击只看 0.35s 不看两次点击的距离。
+
 ## [0.3.4] - 2026-11-16
 
 > 三件都在 `examples/floating-chat/window.py`。前两条来自 see-now 那边的社区报告
